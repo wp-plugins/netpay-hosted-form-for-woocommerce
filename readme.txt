@@ -56,10 +56,10 @@ PCI DSS Certification is not required.
 
 == Screenshots ==
 
-1. NetPay Logo
-2. Sample screenshot from checkout page
-3. WooCommerce Settings
-4. Enter Plugin Configuration
+1. assets/netpay_logo.jpg
+2. assets/checkout.jpg
+3. assets/woocommerce_settings_hosted.jpg
+4. assets/pluging_configuration_hosted.jpg
 
 == Changelog ==
 
