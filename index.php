@@ -1,14 +1,15 @@
-﻿<?php
+<?php
 /*
    Plugin Name: NetPay Hosted Form Method For WooCommerce
    Description: Extends WooCommerce to Process Payments with NetPay's Hosted Form Method .
-   Version: 1.0.0
+   Version: 1.0.1
    Plugin URI: http://netpay.co.uk
    Author: NetPay 
    Author URI: http://www.netpay.co.uk/
-   License: Under GPL2 
+   License: Under GPL2
+   Note: Tested with WP3.8.2 and WP3.9 , WooCommerce version 2.0.20 and compatible with version 2.1.9
 */
-
+ 
 add_action('plugins_loaded', 'woocommerce_tech_netpay_init', 0);
 
 function woocommerce_tech_netpay_init() {
@@ -63,16 +64,17 @@ function woocommerce_tech_netpay_init() {
 			
 			add_action('init', array(&$this, 'check_netpay_response'));
 			add_action( 'woocommerce_api_wc_tech_netpay' , array( $this, 'check_netpay_response' ) );
-			
+
+
          	if ( version_compare( WOOCOMMERCE_VERSION, '2.0.0', '>=' ) ) {
-            	add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( &$this, 'process_admin_options' ) );
+            		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
           	} else {
-             	add_action( 'woocommerce_update_options_payment_gateways', array( &$this, 'process_admin_options' ) );
+             		add_action( 'woocommerce_update_options_payment_gateways', array( &$this, 'process_admin_options' ) );
          	}
 
 			add_action('woocommerce_receipt_netpay', array(&$this, 'receipt_page'));
 			add_action('woocommerce_thankyou_netpay',array(&$this, 'thankyou_page'));
-		}
+	}
 
       	function init_form_fields()
       	{
@@ -242,11 +244,17 @@ function woocommerce_tech_netpay_init() {
       	**/
 		function process_payment($order_id){
 			$order = new WC_Order($order_id);
-			return array('result'   => 'success',
-						 'redirect'  => add_query_arg('order',
-										$order->id, 
-										add_query_arg('key', $order->order_key, get_permalink(get_option('woocommerce_pay_page_id'))))
-			);
+			if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
+				return array('result'   => 'success',
+							 'redirect'  => add_query_arg('order',
+											$order->id, 
+											add_query_arg('key', $order->order_key, get_permalink(get_option('woocommerce_pay_page_id'))))
+				);
+            } else {
+				return array('result'   => 'success',
+							 'redirect'  => $order->get_checkout_payment_url(true)
+				);
+            }
 		}
       
 		/**
@@ -344,17 +352,25 @@ function woocommerce_tech_netpay_init() {
 							}
 						}
 						
-						$redirect_url =  add_query_arg('order',
-															  $order->id, 
-															  add_query_arg('key', $order->order_key, 
-															  get_permalink(get_option('woocommerce_thanks_page_id'))));
+			            if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
+							$redirect_url =  add_query_arg(	'order',
+															$order->id, 
+															add_query_arg('key', $order->order_key, 
+															get_permalink(get_option('woocommerce_thanks_page_id'))));
+			            } else {
+							$redirect_url =  add_query_arg('key', $order->order_key, $this->get_return_url( $order ) );
+                        }
 						$this->web_redirect( $redirect_url); exit;
 					 }
 					 else{
-						$redirect_url =  add_query_arg('order',
-															  $order->id, 
-															  add_query_arg('key', $order->order_key, 
-															  get_permalink(get_option('woocommerce_thanks_page_id'))));
+						if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
+							$redirect_url =  add_query_arg(	'order',
+											$order->id, 
+											add_query_arg('key', $order->order_key, 
+											get_permalink(get_option('woocommerce_thanks_page_id'))));
+						} else {
+							$redirect_url =  add_query_arg('key', $order->order_key, $this->get_return_url( $order ) );
+						}
 						$this->web_redirect($redirect_url.'?msg=Unknown_error_occured');
 						exit;
 					}
@@ -431,18 +447,25 @@ function woocommerce_tech_netpay_init() {
 					   }
 		
 					}
-					
-					$redirect_url =  add_query_arg('order',
-														  $order->id, 
-														  add_query_arg('key', $order->order_key, 
-														  get_permalink(get_option('woocommerce_thanks_page_id'))));
+					if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
+						$redirect_url =  add_query_arg(	'order',
+										$order->id, 
+										add_query_arg('key', $order->order_key, 
+										get_permalink(get_option('woocommerce_thanks_page_id'))));
+					} else {
+						$redirect_url =  add_query_arg('key', $order->order_key, $this->get_return_url( $order ) );
+					}
 					$this->web_redirect( $redirect_url); exit;
 				 
 				 } else {
-					$redirect_url =  add_query_arg('order',
-														  $order->id, 
-														  add_query_arg('key', $order->order_key, 
-														  get_permalink(get_option('woocommerce_thanks_page_id'))));
+					if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
+						$redirect_url =  add_query_arg(	'order',
+										$order->id, 
+										add_query_arg('key', $order->order_key, 
+										get_permalink(get_option('woocommerce_thanks_page_id'))));
+					} else {
+						$redirect_url =  add_query_arg('key', $order->order_key, $this->get_return_url( $order ) );
+					}
 					$this->web_redirect($redirect_url.'?msg=Unknown_error_occured');
 					exit;
 				}
@@ -472,27 +495,45 @@ function woocommerce_tech_netpay_init() {
 			$sequence   = rand(1, 1000);
 			$timeStamp  = time();
 	
-			$redirect_url = (get_option('woocommerce_thanks_page_id') != '' ) ? get_permalink(get_option('woocommerce_thanks_page_id')): get_site_url().'/' ;
-			$relay_url = add_query_arg( array('wc-api' => get_class( $this ) ,'order_id' => $order_id ), $redirect_url );
+            if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
+				$redirect_url = (get_option('woocommerce_thanks_page_id') != '' ) ? get_permalink(get_option('woocommerce_thanks_page_id')): get_site_url().'/' ;
+            } else {
+				$redirect_url = $order->get_checkout_payment_url( $on_checkout = false );
+            }
 			
+			$relay_url = add_query_arg( array('wc-api' => get_class( $this ) ,'order_id' => $order_id ), $redirect_url );
 			
 			$order_description = "New order with order id ".$order_id." and amount ".get_woocommerce_currency()." ".$order->order_total." has been placed.";
 			$respUrl = $this->mcrypt_encrypt_cbc($relay_url,$this->enc_key,$this->enc_iv);
-	
-			$netpay_args = array(
-				'merchant_id'		=> 	$this->merchant_id,
-				'username'          => 	$this->mcrypt_encrypt_cbc($this->netpay_username,$this->enc_key,$this->enc_iv),
-				'password'          => 	$this->mcrypt_encrypt_cbc($this->netpay_password,$this->enc_key,$this->enc_iv),
-				'operation_mode'    => 	$this->mcrypt_encrypt_cbc($this->operation_mode(),$this->enc_key,$this->enc_iv),
-				'session_token'     => 	$this->mcrypt_encrypt_cbc($this->create_unique_session_token($this->merchant_id,$order_id),$this->enc_key,$this->enc_iv),
-				'description'       => 	$this->mcrypt_encrypt_cbc($order_description,$this->enc_key,$this->enc_iv),
-				'amount'            => 	$this->mcrypt_encrypt_cbc($order->order_total,$this->enc_key,$this->enc_iv),
-				'currency'          => 	$this->mcrypt_encrypt_cbc(get_woocommerce_currency(),$this->enc_key,$this->enc_iv),
-				'transaction_id'    => 	$this->mcrypt_encrypt_cbc($this->create_unique_transaction_id($order_id),$this->enc_key,$this->enc_iv),
-				'backend_response'  => 	$this->mcrypt_encrypt_cbc('1',$this->enc_key,$this->enc_iv),
-				'response_url'      => 	$respUrl
-			);
 			
+			if( $this->backend_response == 'yes'){
+				$netpay_args = array(
+					'merchant_id'		=> 	$this->merchant_id,
+					'username'          => 	$this->mcrypt_encrypt_cbc($this->netpay_username,$this->enc_key,$this->enc_iv),
+					'password'          => 	$this->mcrypt_encrypt_cbc($this->netpay_password,$this->enc_key,$this->enc_iv),
+					'operation_mode'    => 	$this->mcrypt_encrypt_cbc($this->operation_mode(),$this->enc_key,$this->enc_iv),
+					'session_token'     => 	$this->mcrypt_encrypt_cbc($this->create_unique_session_token($this->merchant_id,$order_id),$this->enc_key,$this->enc_iv),
+					'description'       => 	$this->mcrypt_encrypt_cbc($order_description,$this->enc_key,$this->enc_iv),
+					'amount'            => 	$this->mcrypt_encrypt_cbc($order->order_total,$this->enc_key,$this->enc_iv),
+					'currency'          => 	$this->mcrypt_encrypt_cbc(get_woocommerce_currency(),$this->enc_key,$this->enc_iv),
+					'transaction_id'    => 	$this->mcrypt_encrypt_cbc($this->create_unique_transaction_id($order_id),$this->enc_key,$this->enc_iv),
+					'backend_response'  => 	$this->mcrypt_encrypt_cbc('1',$this->enc_key,$this->enc_iv),
+					'response_url'      => 	$respUrl
+				);
+			} else {
+				$netpay_args = array(
+					'merchant_id'		=> 	$this->merchant_id,
+					'username'          => 	$this->mcrypt_encrypt_cbc($this->netpay_username,$this->enc_key,$this->enc_iv),
+					'password'          => 	$this->mcrypt_encrypt_cbc($this->netpay_password,$this->enc_key,$this->enc_iv),
+					'operation_mode'    => 	$this->mcrypt_encrypt_cbc($this->operation_mode(),$this->enc_key,$this->enc_iv),
+					'session_token'     => 	$this->mcrypt_encrypt_cbc($this->create_unique_session_token($this->merchant_id,$order_id),$this->enc_key,$this->enc_iv),
+					'description'       => 	$this->mcrypt_encrypt_cbc($order_description,$this->enc_key,$this->enc_iv),
+					'amount'            => 	$this->mcrypt_encrypt_cbc($order->order_total,$this->enc_key,$this->enc_iv),
+					'currency'          => 	$this->mcrypt_encrypt_cbc(get_woocommerce_currency(),$this->enc_key,$this->enc_iv),
+					'transaction_id'    => 	$this->mcrypt_encrypt_cbc($this->create_unique_transaction_id($order_id),$this->enc_key,$this->enc_iv),
+					'response_url'      => 	$respUrl
+				);
+			} 			
 			// Prepare Cart item string
 			$cartItemString='';
 			

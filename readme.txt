@@ -4,12 +4,13 @@ Contributors: NetPay
 Donate link: 
 Tags: woocommerce netpay, netpay.co.uk, payment gateway, woocommerce, woocommerce payment gateway
 Requires at least: 3.0.1
-Tested up to: 3.7
-Stable tag: 1.0.0
+Tested up to: 3.9
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-This Payment Gateway For WooCommerce extends the functionality of WooCommerce to accept payments using NetPay Hosted Form Method
+This Payment Gateway For WooCommerce extends the functionality of WooCommerce to accept payments using NetPay Hosted Form Method.
+Tested with WP3.8.2 and WP3.9 , WooCommerce version 2.0.20 and compatible with version 2.1.7
 
 == Description ==
 
@@ -62,6 +63,8 @@ PCI DSS Certification is not required.
 4. assets/pluging_configuration_hosted.jpg
 
 == Changelog ==
+= 1.0.1 =
+* Updated for WordPress 3.9 and WooCommerce 2.1 and higher
 
 = 1.0.0 =
 * First Version
