@@ -10,7 +10,6 @@ License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 This Payment Gateway For WooCommerce extends the functionality of WooCommerce to accept payments using NetPay Hosted Form Method.
-Tested with WP3.8.2 and WP3.9 , WooCommerce version 2.0.20 and compatible with version 2.1.7
 
 == Description ==
 
@@ -25,6 +24,8 @@ NetPay Hosted Form is fully customizable. The Merchant can able to upload the lo
 All credit/debit cards are processed and transmitted on NetPay’s Secure Server, ensuring maximum security and reducing the risk of card fraud.
 
 Merchant does not need to obtain SSL Certificate and PCI DSS Certification.
+
+Tested with WP3.8.2 and WP3.9 , WooCommerce version 2.0.20 and compatible with version 2.1.7
 
 = Features =
 Few features of this plugin:
