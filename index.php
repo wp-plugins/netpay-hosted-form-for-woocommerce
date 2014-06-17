@@ -2,12 +2,12 @@
 /*
    Plugin Name: NetPay Hosted Form Method For WooCommerce
    Description: Extends WooCommerce to Process Payments with NetPay's Hosted Form Method .
-   Version: 1.0.4
+   Version: 1.0.2
    Plugin URI: http://netpay.co.uk
    Author: NetPay 
    Author URI: http://www.netpay.co.uk/
    License: Under GPL2
-   Note: Tested with WP3.8.2 and WP3.9 , WooCommerce version 2.0.20 and compatible with version 2.1.9
+   Note: Tested with WP3.8.2 and WP3.9.1 , WooCommerce version 2.0.20 and compatible with version 2.1.11
 */
  
 add_action('plugins_loaded', 'woocommerce_tech_netpay_init', 0);
@@ -137,7 +137,7 @@ function woocommerce_tech_netpay_init() {
 			echo '<p>'.__('NetPay is most popular payment gateway for online payment processing').'</p>';
 			echo '<table class="form-table">';
 			$this->generate_settings_html();
-			echo '<tr><td>(Module Version 1.0.4)</td></tr></table>';
+			echo '<tr><td>(Module Version 1.0.6)</td></tr></table>';
 		}
       
 		/* Returns url */
@@ -541,13 +541,23 @@ function woocommerce_tech_netpay_init() {
 				$item_id = $cartItem['product_id'];
 				$item_name = $cartItem['data']->post->post_name;
 				
+				$item_name = strip_tags($item_name);
+				$item_name = preg_replace('/[\x00-\x1F\x80-\xFF\|\}\{]/', '', $item_name);
+				
 				if(strlen($cartItem['data']->post->post_content) > 97){
 					$item_description = substr($cartItem['data']->post->post_content,0,97)."..."; // max 100 character description can be sent
 				} else {
 					$item_description = $cartItem['data']->post->post_content; // max 100 character description can be sent
 				}
 				
+				$item_description = strip_tags($item_description);
+				$item_description = preg_replace('/[\x00-\x1F\x80-\xFF\|\}\{]/', '', $item_description);
+				
                 $item_qty = preg_replace( "/[^0-9]/", "", $cartItem['quantity'] );
+				
+				if(trim($item_qty) == '') {
+					$item_qty = 0;
+				}
 
                 if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
 					// check if sale price is available otherwise, assign regular price
@@ -565,46 +575,85 @@ function woocommerce_tech_netpay_init() {
 					}
 				}
 				
-				// check if product is taxable
-				if(get_post_meta( $cartItem['product_id'], '_tax_status', true) != ''){ 
-					$item_taxable = '1';
+				if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
+					// check if product is taxable
+					if(get_post_meta( $cartItem['product_id'], '_tax_status', true) != ''){ 
+						$item_taxable = '1';
+					} else {
+						$item_taxable = '0';
+					}
 				} else {
-					$item_taxable = '0';
+					if($cartItem['data']->is_taxable()) {
+						$item_taxable = '1';
+					} else {
+						$item_taxable = '0';
+					}
+				}
+				
+				if(trim($productPrice) == '') {
+					$productPrice ="0.00";
 				}
 				
 				$item_price = $productPrice;
+		
 				$cartItemString .= "[{item_id|".$item_id."}{item_name|".$item_name."}{item_description|".$item_description."}{item_quantity|".$item_qty."}{item_price|".$item_price."}{item_taxable|".$item_taxable."}] ";
 			}
-			
 			$browserName = $this->getBrowser();
 			
-			$netpay_info_args = array(
-				'bill_to_company'	=> 	$order->billing_company,
-				'bill_to_address'	=> 	$order->billing_address_1.' '.$order->billing_address_2,
-				'bill_to_town_city'	=> 	$order->billing_city,
-				'bill_to_county'	=> 	$order->billing_state,
-				'bill_to_postcode'	=> 	$order->billing_postcode,
-				'bill_to_country'	=> 	$this->getValidCountryCode($order->billing_country),
-				'customer_email'	=> 	$order->billing_email,
-				'customer_phone'	=> 	$order->billing_phone,
+			// If there is no shipping address use billing by default
+			if( trim($order->get_shipping_address()) == '' ) {
+				$netpay_info_args = array(
+					'bill_to_company'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_company)),
+					'bill_to_address'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_address_1.' '.$order->billing_address_2)),
+					'bill_to_town_city'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_city)),
+					'bill_to_county'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_state)),
+					'bill_to_postcode'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_postcode)),
+					'bill_to_country'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($this->getValidCountryCode($order->billing_country))),
+					'customer_email'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_email)),
+					'customer_phone'	=> 	preg_replace('/[^0-9]/', '', strip_tags($order->billing_phone)),
+					'ship_to_firstname'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_first_name)),
+					'ship_to_lastname'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_last_name)),
+					'ship_to_fullname'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_first_name.' '.$order->billing_last_name)),
+					'ship_to_company'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_company)),
+					'ship_to_address'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_address_1.' '.$order->billing_address_2)),
+					'ship_to_town_city'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_city)),
+					'ship_to_county'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_state)),
+					'ship_to_country'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($this->getValidCountryCode($order->billing_country))),
+					'ship_to_postcode'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_postcode)),
+					'ship_to_method'	=> 	$order->shipping_method,
+					'customer_ip_address'	=> 	$_SERVER['REMOTE_ADDR'],
+					'customer_hostname'	=> 	$_SERVER['HTTP_HOST'],
+					'customer_browser'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($browserName['name'])),
+					'order_items'		=> 	$cartItemString
+				);				
+			} else {
+				$netpay_info_args = array(
+					'bill_to_company'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_company)),
+					'bill_to_address'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_address_1.' '.$order->billing_address_2)),
+					'bill_to_town_city'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_city)),
+					'bill_to_county'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_state)),
+					'bill_to_postcode'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_postcode)),
+					'bill_to_country'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($this->getValidCountryCode($order->billing_country))),
+					'customer_email'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_email)),
+					'customer_phone'	=> 	preg_replace('/[^0-9]/', '', strip_tags($order->billing_phone)),				
+					'ship_to_firstname'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->shipping_first_name)),
+					'ship_to_lastname'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->shipping_last_name)),
+					'ship_to_fullname'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->shipping_first_name.' '.$order->shipping_last_name)),
+					'ship_to_company'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->shipping_company)),
+					'ship_to_address'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->shipping_address_1.' '.$order->shipping_address_2)),
+					'ship_to_town_city'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->shipping_city)),
+					'ship_to_county'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->shipping_state)),
+					'ship_to_country'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($this->getValidCountryCode($order->shipping_country))),
+					'ship_to_postcode'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->shipping_postcode)),
+					'ship_to_method'	=> 	$order->shipping_method,
+					'customer_ip_address'	=> 	$_SERVER['REMOTE_ADDR'],
+					'customer_hostname'	=> 	$_SERVER['HTTP_HOST'],
+					'customer_browser'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($browserName['name'])),
+					'order_items'		=> 	$cartItemString
+				);				
+			}
 				
-				'ship_to_firstname'	=> 	$order->shipping_first_name,
-				'ship_to_lastname'	=> 	$order->shipping_last_name,
-				'ship_to_fullname'	=> 	$order->shipping_first_name.' '.$order->shipping_last_name,
-				'ship_to_company'	=> 	$order->shipping_company,
-				'ship_to_address'	=> 	$order->shipping_address_1.' '.$order->shipping_address_2,
-				'ship_to_town_city'	=> 	$order->shipping_city,
-				'ship_to_county'	=> 	$order->shipping_state,
-				'ship_to_country'	=> 	$this->getValidCountryCode($order->shipping_country),
-				'ship_to_postcode'	=> 	$order->shipping_postcode,
-				'ship_to_method'	=> 	$order->shipping_method,
 				
-				'customer_ip_address'	=> 	$_SERVER['REMOTE_ADDR'],
-				'customer_hostname'	=> 	$_SERVER['HTTP_HOST'],
-				'customer_browser'	=> 	$browserName['name'],
-				'order_items'		=> 	$cartItemString
-			);
-			
 			$netpay_args_array = array();
 			// creating hidden fields for Basic Form
 			foreach($netpay_args as $key => $value){
@@ -618,7 +667,7 @@ function woocommerce_tech_netpay_init() {
 					$netpay_args_array[] =  "<input type='hidden' name='$key' value='$enc_value'/>";
 				}
 			}
-	
+			
 			if($this->mode == 'true'){
 				$processURI = $this->testurl;
 			}
@@ -1005,4 +1054,3 @@ function woocommerce_tech_netpay_init() {
 
    	add_filter('woocommerce_payment_gateways', 'woocommerce_add_tech_netpay_gateway' );
 }
-
