@@ -2,7 +2,7 @@
 /*
    Plugin Name: NetPay Hosted Form Method For WooCommerce
    Description: Extends WooCommerce to Process Payments with NetPay's Hosted Form Method .
-   Version: 1.0.1
+   Version: 1.0.4
    Plugin URI: http://netpay.co.uk
    Author: NetPay 
    Author URI: http://www.netpay.co.uk/
@@ -137,7 +137,7 @@ function woocommerce_tech_netpay_init() {
 			echo '<p>'.__('NetPay is most popular payment gateway for online payment processing').'</p>';
 			echo '<table class="form-table">';
 			$this->generate_settings_html();
-			echo '<tr><td>(Module Version 1.0.0)</td></tr></table>';
+			echo '<tr><td>(Module Version 1.0.4)</td></tr></table>';
 		}
       
 		/* Returns url */
@@ -547,13 +547,22 @@ function woocommerce_tech_netpay_init() {
 					$item_description = $cartItem['data']->post->post_content; // max 100 character description can be sent
 				}
 				
-				$item_qty = $cartItem['quantity'];
-				
-				// check if sale price is available otherwise, assign regular price
-				if(get_post_meta( $cartItem['product_id'], '_sale_price', true) != ''){ 
-					$productPrice = get_post_meta( $cartItem['product_id'], '_sale_price', true);
+                $item_qty = preg_replace( "/[^0-9]/", "", $cartItem['quantity'] );
+
+                if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
+					// check if sale price is available otherwise, assign regular price
+					if(get_post_meta( $cartItem['product_id'], '_sale_price', true) != ''){
+						$productPrice = get_post_meta( $cartItem['product_id'], '_sale_price', true);
+					} else {
+						$productPrice = get_post_meta( $cartItem['product_id'], '_regular_price', true);
+					}
 				} else {
-					$productPrice = get_post_meta( $cartItem['product_id'], '_regular_price', true);
+					// check if sale price is available otherwise, assign regular price
+					if($cartItem['data']->sale_price != ''){
+						$productPrice = $cartItem['data']->sale_price;
+					} else {
+						$productPrice = $cartItem['data']->regular_price;
+					}
 				}
 				
 				// check if product is taxable
@@ -562,7 +571,6 @@ function woocommerce_tech_netpay_init() {
 				} else {
 					$item_taxable = '0';
 				}
-				
 				
 				$item_price = $productPrice;
 				$cartItemString .= "[{item_id|".$item_id."}{item_name|".$item_name."}{item_description|".$item_description."}{item_quantity|".$item_qty."}{item_price|".$item_price."}{item_taxable|".$item_taxable."}] ";
