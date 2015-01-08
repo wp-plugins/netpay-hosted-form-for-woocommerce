@@ -2,12 +2,12 @@
 /*
    Plugin Name: NetPay Hosted Form Method For WooCommerce
    Description: Extends WooCommerce to Process Payments with NetPay's Hosted Form Method .
-   Version: 1.0.2
+   Version: 1.0.3
    Plugin URI: http://netpay.co.uk
    Author: NetPay 
    Author URI: http://www.netpay.co.uk/
    License: Under GPL2
-   Note: Tested with WP3.8.2 and WP3.9.1 , WooCommerce version 2.0.20 and compatible with version 2.1.11
+   Note: Tested with WP3.8.2 and WP4.1 , WooCommerce version 2.0.20 and compatible with version 2.2.10
 */
  
 add_action('plugins_loaded', 'woocommerce_tech_netpay_init', 0);
@@ -137,7 +137,7 @@ function woocommerce_tech_netpay_init() {
 			echo '<p>'.__('NetPay is most popular payment gateway for online payment processing').'</p>';
 			echo '<table class="form-table">';
 			$this->generate_settings_html();
-			echo '<tr><td>(Module Version 1.0.6)</td></tr></table>';
+			echo '<tr><td>(Module Version 1.0.3)</td></tr></table>';
 		}
       
 		/* Returns url */
@@ -538,27 +538,44 @@ function woocommerce_tech_netpay_init() {
 			$cartItemString='';
 			
 			foreach($woocommerce->cart->cart_contents as $cartItem){
+				// Get the product ID
 				$item_id = $cartItem['product_id'];
-				$item_name = $cartItem['data']->post->post_name;
 				
+				// Get the Item Name
+				$item_name = $cartItem['data']->post->post_name;
+				// Strip any characters that should not be there
 				$item_name = strip_tags($item_name);
 				$item_name = preg_replace('/[\x00-\x1F\x80-\xFF\|\}\{]/', '', $item_name);
-				
-				if(strlen($cartItem['data']->post->post_content) > 97){
-					$item_description = substr($cartItem['data']->post->post_content,0,97)."..."; // max 100 character description can be sent
-				} else {
-					$item_description = $cartItem['data']->post->post_content; // max 100 character description can be sent
+				// Make sure that the number of characters are no more than the API expects
+				if(strlen($item_name) > 97){
+					$item_description = substr($item_name,0,97)."..."; // max 100 character description can be sent
 				}
 				
+				// Get the item description
+				$item_description = $cartItem['data']->post->post_content;
+				// Strip any characters that should not be there
 				$item_description = strip_tags($item_description);
 				$item_description = preg_replace('/[\x00-\x1F\x80-\xFF\|\}\{]/', '', $item_description);
+				// If the tags were incorrect item description may be now be blank or it may have been blank to begin with so we will set it to item name
+				if( strlen($item_description) == 0 ) {
+					$item_description = $item_name;
+				}
+
 				
+				// Make sure that the number of characters are no more than the API expects
+				if(strlen($item_description) > 197){
+					$item_description = substr($item_description,0,197)."..."; // max 200 character description can be sent
+				}				
+				
+				// Get the item quantity makeing sure we strip any unwanted characters
                 $item_qty = preg_replace( "/[^0-9]/", "", $cartItem['quantity'] );
 				
+				// If quantity is not set then set to 0 but this will probably fail the transaction as well
 				if(trim($item_qty) == '') {
 					$item_qty = 0;
 				}
 
+				// See if we are using sale price or regular price
                 if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
 					// check if sale price is available otherwise, assign regular price
 					if(get_post_meta( $cartItem['product_id'], '_sale_price', true) != ''){
@@ -575,6 +592,7 @@ function woocommerce_tech_netpay_init() {
 					}
 				}
 				
+				// See if item is taxabled
 				if (version_compare(WOOCOMMERCE_VERSION, '2.1', '<')) {
 					// check if product is taxable
 					if(get_post_meta( $cartItem['product_id'], '_tax_status', true) != ''){ 
@@ -590,17 +608,21 @@ function woocommerce_tech_netpay_init() {
 					}
 				}
 				
+				// If there is no price then set price to 0.00
+				// Note that the API does require a value greater than zero so this will fail after proceed
 				if(trim($productPrice) == '') {
 					$productPrice ="0.00";
 				}
 				
-				$item_price = $productPrice;
-		
+				// If price starts with a decimal place replace it with 0.
+				$item_price = preg_replace( "/^./", "0.", $productPrice);
 				$cartItemString .= "[{item_id|".$item_id."}{item_name|".$item_name."}{item_description|".$item_description."}{item_quantity|".$item_qty."}{item_price|".$item_price."}{item_taxable|".$item_taxable."}] ";
 			}
+			
+			// Get the name of the web browser being used
 			$browserName = $this->getBrowser();
 			
-			// If there is no shipping address use billing by default
+			// If there is no shipping address use billing by default and strip any unwanted characters
 			if( trim($order->get_shipping_address()) == '' ) {
 				$netpay_info_args = array(
 					'bill_to_company'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_company)),
@@ -627,6 +649,7 @@ function woocommerce_tech_netpay_init() {
 					'order_items'		=> 	$cartItemString
 				);				
 			} else {
+				// Otherwise use billing and shipping address supplied stripping out any unwanted characters
 				$netpay_info_args = array(
 					'bill_to_company'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_company)),
 					'bill_to_address'	=> 	preg_replace('/[\x00-\x1F\x80-\xFF]/', '', strip_tags($order->billing_address_1.' '.$order->billing_address_2)),

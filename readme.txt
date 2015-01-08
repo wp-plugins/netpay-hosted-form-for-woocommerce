@@ -4,8 +4,8 @@ Contributors: NetPay
 Donate link: 
 Tags: woocommerce netpay, netpay.co.uk, payment gateway, woocommerce, woocommerce payment gateway
 Requires at least: 3.0.1
-Tested up to: 3.9.1
-Stable tag: 1.0.2
+Tested up to: 4.1
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,8 +51,8 @@ Easy steps to install the plugin:
 * SSL Certificate is not required. The user will enter card information on NetPay's Hosted Form. NetPay take care of all card handling and processing security.
 = Is PCI DSS Certification required to use this plugin? =
 * PCI DSS Certification is not required. 
-= What version of Wordpress and Woocommerce doe this work with? =
-* Tested with Wordpress 3.8.2 through to 3.9.1 , WooCommerce version 2.0.20 through to 2.1.11
+= What version of Wordpress and Woocommerce does this work with? =
+* Tested with Wordpress 3.8.2 through to 4.1 , WooCommerce version 2.0.20 through to 2.2.10
 
 == Screenshots ==
 
@@ -62,6 +62,9 @@ Easy steps to install the plugin:
 4. assets/pluging_configuration_hosted.jpg
 
 == Changelog ==
+
+= 1.0.3 =
+* Tested with WP4.1 and Woocommerce 2.2.10
 
 = 1.0.2 =
 * Use billing address as default if shipping is missing
