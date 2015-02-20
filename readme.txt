@@ -5,7 +5,7 @@ Donate link:
 Tags: woocommerce netpay, netpay.co.uk, payment gateway, woocommerce, woocommerce payment gateway
 Requires at least: 3.0.1
 Tested up to: 4.1
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,8 @@ Easy steps to install the plugin:
 4. assets/pluging_configuration_hosted.jpg
 
 == Changelog ==
+= 1.0.4 =
+* Fixes item price rounding
 
 = 1.0.3 =
 * Tested with WP4.1 and Woocommerce 2.2.10

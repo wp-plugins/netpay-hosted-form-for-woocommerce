@@ -615,7 +615,7 @@ function woocommerce_tech_netpay_init() {
 				}
 				
 				// If price starts with a decimal place replace it with 0.
-				$item_price = preg_replace( "/^./", "0.", $productPrice);
+				$item_price = number_format($productPrice, 2, '.', '');
 				$cartItemString .= "[{item_id|".$item_id."}{item_name|".$item_name."}{item_description|".$item_description."}{item_quantity|".$item_qty."}{item_price|".$item_price."}{item_taxable|".$item_taxable."}] ";
 			}
 			
