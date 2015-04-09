@@ -4,8 +4,8 @@ Contributors: NetPay
 Donate link: 
 Tags: woocommerce netpay, netpay.co.uk, payment gateway, woocommerce, woocommerce payment gateway
 Requires at least: 3.0.1
-Tested up to: 4.1
-Stable tag: 1.0.4
+Tested up to: 4.1.1
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,18 +33,22 @@ Few features of this plugin:
 3. Easy to install and configure
 4. Safe way to process credit/debit cards on WooCommerce using NetPay Hosted Form
 5. This plugin use hosted solution provided by NetPay and payment is processed on secured servers of NetPay
+6. Ability to choose STANDARD or SWIFT payment template
+7. Server side communication with NetPay Payment Gateway (requires cURL)
 
 == Installation ==
 
 Easy steps to install the plugin:
+1. Requires cURL. Enable cURL if it is not enabled.
+2. Requires Mcrypt library. If it is not enabled or installed, install Mcrypt library and enable.
+3. Upload `netpay-payment-gateway-for-woocommerce` folder/directory to the `/wp-content/plugins/` directory
+4. Activate the plugin through the 'Plugins' menu in WordPress.
+5. Go to WooCommerce => Settings
+6. On the "Settings" page, select "Payment Gateways" tab.
+7. Under "Payment Gateways" you will find all the available gateways, select "NetPay Hosted Form" option
+8. On this page you will find options to configure the plugin for use with WooCommerce
+9. Enter the integration details (Merchant Id, Merchant Login, Password etc)
 
-1. Upload `netpay-payment-gateway-for-woocommerce` folder/directory to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Go to WooCommerce => Settings
-4. On the "Settings" page, select "Payment Gateways" tab.
-5. Under "Payment Gateways" you will find all the available gateways, select "NetPay Hosted Form" option
-6. On this page you wil find option to configure the plugin for use with WooCommerce
-7. Enter the integration details (Merchant Id, Merchant Login, Password)
 
 == Frequently Asked Questions ==
 = Is SSL Certificate required to use this plugin? =
@@ -55,13 +59,18 @@ Easy steps to install the plugin:
 * Tested with Wordpress 3.8.2 through to 4.1 , WooCommerce version 2.0.20 through to 2.2.10
 
 == Screenshots ==
-
 1. assets/netpay_logo.jpg
 2. assets/checkout.jpg
 3. assets/woocommerce_settings_hosted.jpg
 4. assets/pluging_configuration_hosted.jpg
 
 == Changelog ==
+= 1.0.5 =
+* Tested with WordParess 4.1.1 and WooCommerce 2.3.7
+* Upraged to use NetPay SPM (Server Post Method) 
+* Option added to choose STANDARD or SWIFT payment template
+* It requires cURL to communicate with NetPay Payment Gateway
+
 = 1.0.4 =
 * Fixes item price rounding
 
