@@ -34,7 +34,7 @@ Few features of this plugin:
 4. Safe way to process credit/debit cards on WooCommerce using NetPay Hosted Form
 5. This plugin use hosted solution provided by NetPay and payment is processed on secured servers of NetPay
 6. Ability to choose STANDARD or SWIFT payment template
-7. Server side communication with NetPay Payment Gateway (requires cURL)
+7. Server side communication with NetPay Payment Gateway (requires cURL) 
 
 == Installation ==
 
