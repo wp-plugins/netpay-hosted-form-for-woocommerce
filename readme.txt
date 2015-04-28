@@ -66,7 +66,7 @@ Easy steps to install the plugin:
 
 == Changelog ==
 = 1.0.5 =
-* Tested with WordParess 4.1.1 and WooCommerce 2.3.7
+* Tested with WordParess 4.2.1 and WooCommerce 2.3.7
 * Upraged to use NetPay SPM (Server Post Method) 
 * Option added to choose STANDARD or SWIFT payment template
 * It requires cURL to communicate with NetPay Payment Gateway
