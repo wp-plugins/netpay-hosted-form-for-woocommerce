@@ -4,7 +4,7 @@ Contributors: NetPay
 Donate link: 
 Tags: woocommerce netpay, netpay.co.uk, payment gateway, woocommerce, woocommerce payment gateway
 Requires at least: 3.0.1
-Tested up to: 4.1.1
+Tested up to: 4.2.1
 Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -37,7 +37,6 @@ Few features of this plugin:
 7. Server side communication with NetPay Payment Gateway (requires cURL) 
 
 == Installation ==
-
 Easy steps to install the plugin:
 
 1. Requires cURL. Enable cURL if it is not enabled.
