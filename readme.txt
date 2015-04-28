@@ -56,7 +56,7 @@ Easy steps to install the plugin:
 = Is PCI DSS Certification required to use this plugin? =
 * PCI DSS Certification is not required. 
 = What version of Wordpress and Woocommerce does this work with? =
-* Tested with Wordpress 3.8.2 through to 4.2 , WooCommerce version 2.0.20 through to 2.2.10
+* Tested with Wordpress 3.8.2 through to 4.2 , WooCommerce version 2.0.20 through to 2.3.7
 
 == Screenshots ==
 1. assets/netpay_logo.jpg
